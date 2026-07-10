@@ -22,6 +22,10 @@ all: up
 # lifecycle                                                                    #
 # ---------------------------------------------------------------------------- #
 
+## Build Docker images
+build:
+	$(COMPOSE) -f $(COMPOSE_FILE) build
+
 ## Build (if needed) and start the project
 up: create-dirs
 	$(COMPOSE) -f $(COMPOSE_FILE) up --build
@@ -30,29 +34,87 @@ up: create-dirs
 down:
 	$(COMPOSE) -f $(COMPOSE_FILE) down
 
+## Restart containers
+restart:
+	$(COMPOSE) -f $(COMPOSE_FILE) restart
+
 # ---------------------------------------------------------------------------- #
 # individual services                                                          #
 # ---------------------------------------------------------------------------- #
+
+## Build NGINX image
+build-nginx:
+	$(COMPOSE) -f $(COMPOSE_FILE) build nginx
+
+## Build WordPress image
+build-wordpress:
+	$(COMPOSE) -f $(COMPOSE_FILE) build wordpress
+
+## Build MariaDB image
+build-wordpress:
+	$(COMPOSE) -f $(COMPOSE_FILE) build mariadb
 
 # ---------------------------------------------------------------------------- #
 # logs                                                                         #
 # ---------------------------------------------------------------------------- #
 
+## Follow logs from all containers
+logs:
+	$(COMPOSE) -f $(COMPOSE_FILE) logs -f
+
+## Follow NGINX logs
+logs-nginx:
+	$(COMPOSE) -f $(COMPOSE_FILE) logs -f nginx
+
+## Follow WordPress logs
+logs-wordpress:
+	$(COMPOSE) -f $(COMPOSE_FILE) logs -f wordpress
+
+## Follow MariaDB logs
+logs-mariadb:
+	$(COMPOSE) -f $(COMPOSE_FILE) logs -f mariadb
+
 # ---------------------------------------------------------------------------- #
 # shells                                                                       #
 # ---------------------------------------------------------------------------- #
 
-# ---------------------------------------------------------------------------- #
-# code quality                                                                 #
-# ---------------------------------------------------------------------------- #
+## Open a shell in NGINX container
+shell-nginx:
+	$(COMPOSE) -f $(COMPOSE_FILE) exec nginx bash
+
+## Open a shell in WordPress container
+shell-wordpress:
+	$(COMPOSE) -f $(COMPOSE_FILE) exec wordpress bash
+
+## Open a shell in MariaDB container
+shell-mariadb:
+	$(COMPOSE) -f $(COMPOSE_FILE) exec mariadb bash
 
 # ---------------------------------------------------------------------------- #
 # status                                                                       #
 # ---------------------------------------------------------------------------- #
 
+## Show container status
+ps:
+	$(COMPOSE) -f $(COMPOSE_FILE) ps
+
 # ---------------------------------------------------------------------------- #
 # cleanup                                                                      #
 # ---------------------------------------------------------------------------- #
+
+## Remove containers and networks
+clean:
+	$(COMPOSE) -f $(COMPOSE_FILE) down
+
+## Remove containers, networks and volumes
+fclean:
+	$(COMPOSE) -f $(COMPOSE_FILE) down -v
+
+## Rebuild and restart the project
+re:
+	$(MAKE) down
+	$(MAKE) build
+	$(MAKE) up
 
 # ---------------------------------------------------------------------------- #
 # magic help                                                                   #
