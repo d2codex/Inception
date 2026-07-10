@@ -7,35 +7,91 @@
 #   nginx talks to wordpress
 #   wordpress talks to mariadb
 
-
 services:
+
+  mariadb:
+    build:
+      context: ./requirements/mariadb
+    image: mariadb
+    env_file:
+      - .env
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception
+    restart: unless-stopped
+
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+    image: wordpress
+    env_file:
+      - .env
+    secrets:
+      - credentials
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    restart: unless-stopped
+
   nginx:
-    # build the image for nginx (images are stored locally)
-    image: nginx # gives the built image a name
-    build: # says how to build the image
-    # compose builds image from ./requirements/nginx and tags it as nginx
-    # no pull from Docker Hub is needed because the image is created locally first.
+    build:
+    # Build the image from the local Dockerfile located in
+    # ./requirements/nginx and tag the resulting image as "nginx".
+    # Because a build context is provided, Docker Compose builds the
+    # image locally instead of pulling nginx from Docker Hub.
       context: ./requirements/nginx
+    image: nginx
+    depends_on:
+      - wordpress
     ports:
       - "443:443"
     networks:
       - inception
+    restart: unless-stopped
 
-  wordpress:
-    image: wordpress
-    build:
-      context: ./requirements/wordpress
-    networks:
-      - inception
-
-  mariadb:
-    image: mariadb
-    build:
-      context: ./requirements/mariadb
-    networks:
-      - inception
-
-# this indicates that the containers are allowed to communicate with
-# each other, only nginx is exposed to the outside world
+# Docker network for internal communication
+# Containers communicate using service names:
+# nginx -> wordpress -> mariadb
 networks:
   inception:
+
+# Docker named volumes
+# Persistent data stored outside containers
+volumes:
+
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/diade-so/data/mariadb
+
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/diade-so/data/wordpress
+
+# Docker secrets
+# Sensitive information is stored outside the repository
+environment:
+  DOMAIN_NAME: $(DOMAIN_NAME)
+
+secrets:
+
+  db_password:
+    file: ../secrets/db_password.txt
+
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+
+  credentials:
+    file: ../secrets/credentials.txt
