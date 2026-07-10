@@ -1,0 +1,41 @@
+#flow: make up
+# -> build images -> create containers -> create network
+# -> create volumes -> start containers
+
+# network config:
+#   browser talks to nginx
+#   nginx talks to wordpress
+#   wordpress talks to mariadb
+
+
+services:
+  nginx:
+    # build the image for nginx (images are stored locally)
+    image: nginx # gives the built image a name
+    build: # says how to build the image
+    # compose builds image from ./requirements/nginx and tags it as nginx
+    # no pull from Docker Hub is needed because the image is created locally first.
+      context: ./requirements/nginx
+    ports:
+      - "443:443"
+    networks:
+      - inception
+
+  wordpress:
+    image: wordpress
+    build:
+      context: ./requirements/wordpress
+    networks:
+      - inception
+
+  mariadb:
+    image: mariadb
+    build:
+      context: ./requirements/mariadb
+    networks:
+      - inception
+
+# this indicates that the containers are allowed to communicate with
+# each other, only nginx is exposed to the outside world
+networks:
+  inception:
