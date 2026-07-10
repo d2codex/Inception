@@ -51,7 +51,7 @@ build-wordpress:
 	$(COMPOSE) -f $(COMPOSE_FILE) build wordpress
 
 ## Build MariaDB image
-build-wordpress:
+build-mariadb:
 	$(COMPOSE) -f $(COMPOSE_FILE) build mariadb
 
 # ---------------------------------------------------------------------------- #
