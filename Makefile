@@ -1,11 +1,17 @@
 COMPOSE = docker compose
 COMPOSE_FILE = srcs/docker-compose.yml
 
+DATA_DIR := /home/diade-so/data
+
+create-dirs:
+	mkdir -p $(DATA_DIR)/mariadb
+	mkdir -p $(DATA_DIR)/wordpress
+
 ## Start the default local development stack
 all: up
 
 ## Build (if needed) and start the project
-up:
+up: create-dirs
 	$(COMPOSE) -f $(COMPOSE_FILE) up --build
 
 # Magic help adapted: from https://gitlab.com/depressiveRobot/make-help/blob/master/help.mk (MIT License)
