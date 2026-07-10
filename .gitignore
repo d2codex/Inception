@@ -1,0 +1,10 @@
+# Secrets
+secrets/
+
+# Environment files
+.env
+srcs/.env
+
+# OS/editor files
+.DS_Store
+*.swp
