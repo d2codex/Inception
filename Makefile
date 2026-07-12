@@ -1,6 +1,6 @@
 COMPOSE = docker compose
 COMPOSE_FILE = srcs/docker-compose.yml
-DATA_DIR := /home/diade-so/data
+DATA_DIR := $(HOME)/data
 
 # ---------------------------------------------------------------------------- #
 # utility target                                                               #
