@@ -1,6 +1,18 @@
 COMPOSE = docker compose
 COMPOSE_FILE = srcs/docker-compose.yml
 DATA_DIR := $(HOME)/data
+SECRETS_DIR := secrets
+
+# ---------------------------------------------------------------------------- #
+# colors                                                                       #
+# ---------------------------------------------------------------------------- #
+
+RESET   := \033[0m
+RED     := \033[31m
+GRN   := \033[32m
+YEL  := \033[33m
+BLU    := \033[34m
+MAG := \033[35m
 
 # ---------------------------------------------------------------------------- #
 # utility target                                                               #
@@ -8,9 +20,63 @@ DATA_DIR := $(HOME)/data
 
 ## Create required host directories for Docker volumes
 create-dirs:
-	mkdir -p $(DATA_DIR)/mariadb
-	mkdir -p $(DATA_DIR)/wordpress
+	@printf "$(BLU)Checking data directories...$(RESET)\n"
 
+	@if [ ! -d $(DATA_DIR) ]; then \
+		mkdir -p $(DATA_DIR); \
+		printf "$(YEL)✓ Created$(RESET) %s/\n" "$(DATA_DIR)"; \
+	fi
+
+	@if [ ! -d $(DATA_DIR)/mariadb ]; then \
+		mkdir -p $(DATA_DIR)/mariadb; \
+		printf "$(YEL)✓ Created$(RESET) %s/mariadb/\n" "$(DATA_DIR)"; \
+	fi
+
+	@if [ ! -d $(DATA_DIR)/wordpress ]; then \
+		mkdir -p $(DATA_DIR)/wordpress; \
+		printf "$(YEL)✓ Created$(RESET) %s/wordpress/\n" "$(DATA_DIR)"; \
+	fi
+
+	@printf "$(GRN)Done.$(RESET)\n"
+## Create Docker secret files if they do not already exist
+create-secrets:
+	@printf "$(BLU)Checking Docker secrets...$(RESET)\n"
+	
+	@if [ ! -d $(SECRETS_DIR) ]; then \
+		mkdir -p $(SECRETS_DIR); \
+		printf "$(YEL)✓ Created$(RESET) %s/\n" "$(SECRETS_DIR)"; \
+	fi
+
+
+	@if [ ! -f $(SECRETS_DIR)/db_password.txt ]; then \
+		openssl rand -base64 32 > $(SECRETS_DIR)/db_password.txt; \
+		printf "$(YEL)✓ Created$(RESET) %s/db_password.txt\n" "$(SECRETS_DIR)"; \
+	else \
+		printf "$(YEL)• Using existing$(RESET) %s/db_password.txt\n" "$(SECRETS_DIR)"; \
+	fi
+
+	@if [ ! -f $(SECRETS_DIR)/db_root_password.txt ]; then \
+		openssl rand -base64 32 > $(SECRETS_DIR)/db_root_password.txt; \
+		printf "$(YEL)✓ Created$(RESET) %s/db_root_password.txt\n" "$(SECRETS_DIR)"; \
+	else \
+		printf "$(YEL)• Using existing$(RESET) %s/db_root_password.txt\n" "$(SECRETS_DIR)"; \
+	fi
+
+	@if [ ! -f $(SECRETS_DIR)/wp_admin_password.txt ]; then \
+		openssl rand -base64 32 > $(SECRETS_DIR)/wp_admin_password.txt; \
+		printf "$(YEL)✓ Created$(RESET) %s/wp_admin_password.txt\n" "$(SECRETS_DIR)"; \
+	else \
+		printf "$(YEL)• Using existing$(RESET) %s/wp_admin_password.txt\n" "$(SECRETS_DIR)"; \
+	fi
+
+	@if [ ! -f $(SECRETS_DIR)/wp_user_password.txt ]; then \
+		openssl rand -base64 32 > $(SECRETS_DIR)/wp_user_password.txt; \
+		printf "$(YEL)✓ Created$(RESET) %s/wp_user_password.txt\n" "$(SECRETS_DIR)"; \
+	else \
+		printf "$(YEL)• Using existing$(RESET) %s/wp_user_password.txt\n" "$(SECRETS_DIR)"; \
+	fi
+
+	@printf "$(GRN)Done.$(RESET)\n"
 # ---------------------------------------------------------------------------- #
 # default                                                                      #
 # ---------------------------------------------------------------------------- #
@@ -27,7 +93,7 @@ build:
 	$(COMPOSE) -f $(COMPOSE_FILE) build
 
 ## Build (if needed) and start the project
-up: create-dirs
+up: create-dirs create-secrets
 	$(COMPOSE) -f $(COMPOSE_FILE) up --build
 
 ## Stop and remove containers and networks
@@ -104,11 +170,21 @@ ps:
 
 ## Remove containers and networks
 clean:
-	$(COMPOSE) -f $(COMPOSE_FILE) down
+	@$(COMPOSE) -f $(COMPOSE_FILE) down
 
-## Remove containers, networks and volumes
+## Remove containers, networks and volumes and generated files
 fclean:
-	$(COMPOSE) -f $(COMPOSE_FILE) down -v
+	@$(COMPOSE) -f $(COMPOSE_FILE) down -v
+
+	@if [ -d $(DATA_DIR) ]; then \
+		rm -rf $(DATA_DIR); \
+		printf "$(MAG)✓ Removed$(RESET) %s/\n" "$(DATA_DIR)"; \
+	fi
+
+	@if [ -d $(SECRETS_DIR) ]; then \
+		rm -rf $(SECRETS_DIR); \
+		printf "$(MAG)✓ Removed$(RESET) %s/\n" "$(SECRETS_DIR)"; \
+	fi
 
 ## Rebuild and restart the project
 re:
@@ -134,4 +210,6 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort -u
 	@printf "\n"
 
-.PHONY: all help up down build logs ps restart clean fclean re
+.PHONY: create-dirs create-secrets all build up down restart build-ngix build-wordpress \
+	build-mariadb logs logs-nginx logs-wordpress logs-mariadb shell-nginx shell-wordpress \
+	shell-maraidb ps clean fclean re help
