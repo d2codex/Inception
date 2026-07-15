@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # /etc/mysql/
 RUN apt-get update && apt upgrade -y \
     apt-get install -y mariadb-server && \
-	apt-get clean &&
+	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
 # Configuration
