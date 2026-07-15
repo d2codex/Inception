@@ -1,0 +1,17 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+
+# Temporary files
+*.tmp
+*.log
+
+# Editor files
+.vscode
+.idea
+
+# OS files
+.DS_Store
