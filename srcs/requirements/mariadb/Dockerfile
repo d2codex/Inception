@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # after this inside the image we have:
 # /usr/sbin/mysqld
 # /etc/mysql/
-RUN apt-get update && apt upgrade -y \
+RUN apt-get update && apt upgrade -y  && \
     apt-get install -y mariadb-server && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
