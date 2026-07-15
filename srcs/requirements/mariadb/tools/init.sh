@@ -1,11 +1,12 @@
+#!/bin/bash
+
 # this script is responsible for:
 #	reading secrets
 #	initializing the databse if needed
 #	creating users/databases
 #	starting the MariaDB daemon
 
-#!/bin/bash
-
+#Exit the script immediately if any command returns a non-zero (error) status.
 set -e
 
 # Read database passwords from Docker secrets
