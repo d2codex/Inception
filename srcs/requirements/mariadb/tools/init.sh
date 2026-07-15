@@ -16,7 +16,7 @@ MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 # Check if MariaDB has already been initializing
 if [ ! -d "/var/lib/mysql/mysql" ]; then
 	echo "Initializing MariaDB database..."
-
+	echo "Creating user ${MYSQL_USER}..."
 	#Initialize database system tables
 	mariadb-install-db \
 		--user=mysql \
@@ -33,14 +33,13 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 	done
 
 	# Configure database, user, and permissions
+	echo "Creating database ${MYSQL_DATABASE}..."
 	mariadb --socket=/tmp/mysql.sock <<EOSQL
 		ALTER USER 'root'@'localhost'
 		IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 
-		echo "Creating database ${MYSQL_DATABASE}..."
 		CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
 
-		echo "Creating user ${MYSQL_USER}..."
 		CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%'
 		IDENTIFIED BY '${MYSQL_PASSWORD}';
 
@@ -48,14 +47,14 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 		ON ${MYSQL_DATABASE}.*
 		TO '${MYSQL_USER}'@'%';
 
-		FLUSH PRIVILEDGES;
+		FLUSH PRIVILEGES;
 EOSQL
 
 	# Stop temporay MariaDB server
 	mariadb-admin \
 		--socket=/tmp/mysql.sock \
 		-u root \
-		-p"${MYSQL_ROOT_PASSWORDi}" shutdown
+		-p"${MYSQL_ROOT_PASSWORD}" shutdown
 	wait "$pid"
 fi
 
@@ -69,4 +68,4 @@ chown mysql:mysql /run/mysqld
 # This makes the application (mysqld) become PID 1 inside the container,
 # allowing Docker to properly track the main process and handle signals
 # such as SIGTERM for clean shutdown.
-exec "$@" --user=mysql
+exec mysqld --user=mysql

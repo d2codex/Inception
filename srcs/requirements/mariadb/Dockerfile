@@ -36,5 +36,3 @@ EXPOSE 3306
 # ENTRYPOINT defines what always runs when the container starts
 # CMD provids a default command
 ENTRYPOINT ["/usr/local/bin/init.sh"]
-CMD ["mysqld"]
-# the actual command becomes: /usr/local/bin/init.sh mysqld
