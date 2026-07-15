@@ -6,15 +6,15 @@ FROM debian:bookworm
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-RUN apt-get update && sudo apt upgrade -y \
-    apt-get install -y mariadb-server \
-	# removes downloaded .deb package archives 
-	apt-get clean \
-	# remove apt cache
+# removes downloaded .deb package archives
+# remove apt cache
+# after this inside the image we have:
+# /usr/sbin/mysqld
+# /etc/mysql/
+RUN apt-get update && apt upgrade -y \
+    apt-get install -y mariadb-server && \
+	apt-get clean &&
 	rm -rf /var/lib/apt/lists/*
-	# after this inside the image we have:
-	# /usr/sbin/mysqld
-	# /etc/mysql/
 
 # Configuration
 # replace the default server configuration
