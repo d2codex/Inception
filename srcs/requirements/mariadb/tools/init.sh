@@ -9,6 +9,20 @@
 #Exit the script immediately if any command returns a non-zero (error) status.
 set -e
 
+# Create MariaDB runtime directory for Unix socket
+mkdir -p /run/mysqld
+chown mysql:mysql /run/mysqld
+
+# Initialize MariaDB system tables if needed
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+	echo "Initializing MariaDB..."
+
+	#Initialize database system tables
+	mariadb-install-db \
+		--user=mysql \
+		--datadir=/var/lib/mysql
+fi
+
 # Read database passwords from Docker secrets
 MYSQL_PASSWORD=$(cat /run/secrets/db_password)
 MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
@@ -16,15 +30,10 @@ MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 echo "MYSQL_DATABASE=${MYSQL_DATABASE}"
 echo "MYSQL_USER=${MYSQL_USER}"
 
-# Check if MariaDB has already been initializing
-if [ ! -d "/var/lib/mysql/mysql" ]; then
-	echo "Initializing MariaDB database..."
+# Configure application database on first run
+if [ ! -d "var/lib/mysql/${MYSQL_DATABASE}" ]; then
 
-	#Initialize database system tables
-	mariadb-install-db \
-		--user=mysql \
-		--datadir=/var/lib/mysql
-
+	echo "Starting temporary MariaDb"
 	# temporary MariaDb - starts mariadb only for setup  since
 	# we cannot create users/databases if the server is not running
 	mysqld --skip-networking --socket=/tmp/mysql.sock &
@@ -40,19 +49,20 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 
 	# Configure database, user, and permissions
 	mariadb --socket=/tmp/mysql.sock <<EOSQL
-		ALTER USER 'root'@'localhost'
-		IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+	
+	ALTER USER 'root'@'localhost'
+	IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 
-		CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
+	CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
 
-		CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%'
-		IDENTIFIED BY '${MYSQL_PASSWORD}';
+	CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%'
+	IDENTIFIED BY '${MYSQL_PASSWORD}';
 
-		GRANT ALL PRIVILEGES
-		ON ${MYSQL_DATABASE}.*
-		TO '${MYSQL_USER}'@'%';
+	GRANT ALL PRIVILEGES
+	ON ${MYSQL_DATABASE}.*
+	TO '${MYSQL_USER}'@'%';
 
-		FLUSH PRIVILEGES;
+	FLUSH PRIVILEGES;
 EOSQL
 
 	# Stop temporay MariaDB server
@@ -64,10 +74,6 @@ EOSQL
 fi
 
 echo "Starting MariaDB..."
-
-# Create MariaDB runtime directory for Unix socket
-mkdir -p /run/mysqld
-chown mysql:mysql /run/mysqld
 
 # Replace the shell process with MariaDB.
 # This makes mysqld become PID 1 inside the container,
