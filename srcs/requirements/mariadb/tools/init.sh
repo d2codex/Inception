@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# this script is responsible for:
-#	reading secrets
-#	initializing the databse if needed
-#	creating users/databases
-#	starting the MariaDB daemon
-
 #Exit the script immediately if any command returns a non-zero (error) status.
 set -e
 
@@ -31,12 +25,12 @@ echo "MYSQL_DATABASE=${MYSQL_DATABASE}"
 echo "MYSQL_USER=${MYSQL_USER}"
 
 # Configure application database on first run
-if [ ! -d "var/lib/mysql/${MYSQL_DATABASE}" ]; then
+if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
 
-	echo "Starting temporary MariaDb"
+	echo "Starting temporary MariaDB"
 	# temporary MariaDb - starts mariadb only for setup  since
 	# we cannot create users/databases if the server is not running
-	mysqld --skip-networking --socket=/tmp/mysql.sock &
+	mysqld --user=mysql --skip-networking --socket=/tmp/mysql.sock &
 	pid="$!"
 
 	# Wait until MariaDB is ready
