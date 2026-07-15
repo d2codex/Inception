@@ -6,8 +6,10 @@ FROM debian:bookworm
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-RUN apt-get update && \
-    apt-get install -y mariadb-server && \
+RUN apt-get update && sudo apt upgrade -y \
+    apt-get install -y mariadb-server \
+	# removes downloaded .deb package archives 
+	apt-get clean \
 	# remove apt cache
 	rm -rf /var/lib/apt/lists/*
 	# after this inside the image we have:
