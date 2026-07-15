@@ -19,6 +19,7 @@ services:
       - db_password
       - db_root_password
     volumes:
+      # <host volume> : <container path>
       - mariadb_data:/var/lib/mysql
     networks:
       - inception
@@ -40,7 +41,7 @@ services:
       - wordpress_data:/var/www/html
     networks:
       - inception
-    restart: unless-stopped
+    restart: on-failure
 
   nginx:
     build:
@@ -52,11 +53,18 @@ services:
     image: nginx
     depends_on:
       - wordpress
+    volumes:
+      - wordpress_data:/var/www/html:ro
     ports:
       - "443:443"
     networks:
       - inception
-    restart: unless-stopped
+    # on-failure for development stage
+    # change back to unless-stopped after devlopment stage
+    # These are persistent services that should recover automatically
+    # after crashes or host reboots. Unless I manually stop them,
+    # Docker keeps them running
+    restart: on-failure
 
 # Docker network for internal communication
 # Containers communicate using service names:
@@ -66,13 +74,17 @@ networks:
 
 # Docker named volumes
 # Persistent data stored outside containers
+# if we remove containers the data is preserved with volumes
+#
 volumes:
-
+  #give the docker volume a name (named volume)
   mariadb_data:
     driver: local
     driver_opts:
       type: none
+      # dont mount a filesystem, mount an existing directory (device)
       o: bind
+      # host directory where mariadb is persisted
       device: ${HOME}/data/mariadb
 
   wordpress_data:
