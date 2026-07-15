@@ -177,7 +177,7 @@ fclean:
 	@$(COMPOSE) -f $(COMPOSE_FILE) down -v
 
 	@if [ -d $(DATA_DIR) ]; then \
-		rm -rf $(DATA_DIR); \
+		sudo rm -rf $(DATA_DIR); \
 		printf "$(MAG)✓ Removed$(RESET) %s/\n" "$(DATA_DIR)"; \
 	fi
 

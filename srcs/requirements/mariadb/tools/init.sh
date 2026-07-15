@@ -13,10 +13,13 @@ set -e
 MYSQL_PASSWORD=$(cat /run/secrets/db_password)
 MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
+echo "MYSQL_DATABASE=${MYSQL_DATABASE}"
+echo "MYSQL_USER=${MYSQL_USER}"
+
 # Check if MariaDB has already been initializing
 if [ ! -d "/var/lib/mysql/mysql" ]; then
 	echo "Initializing MariaDB database..."
-	echo "Creating user ${MYSQL_USER}..."
+
 	#Initialize database system tables
 	mariadb-install-db \
 		--user=mysql \
@@ -32,8 +35,10 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 		sleep 1
 	done
 
-	# Configure database, user, and permissions
 	echo "Creating database ${MYSQL_DATABASE}..."
+	echo "Creating user ${MYSQL_USER}..."
+
+	# Configure database, user, and permissions
 	mariadb --socket=/tmp/mysql.sock <<EOSQL
 		ALTER USER 'root'@'localhost'
 		IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
@@ -64,8 +69,8 @@ echo "Starting MariaDB..."
 mkdir -p /run/mysqld
 chown mysql:mysql /run/mysqld
 
-# Replace the current shell process with the command passed as arguments.
-# This makes the application (mysqld) become PID 1 inside the container,
-# allowing Docker to properly track the main process and handle signals
-# such as SIGTERM for clean shutdown.
+# Replace the shell process with MariaDB.
+# This makes mysqld become PID 1 inside the container,
+# allowing Docker to properly track the main process
+# and handle signals such as SIGTERM for clean shutdown.
 exec mysqld --user=mysql
