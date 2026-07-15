@@ -36,9 +36,3 @@ EXPOSE 3306
 ENTRYPOINT ["/usr/local/bin/init.sh"]
 CMD ["mysqld"]
 # the actual command becomes: /usr/local/bin/init.sh mysqld
-
-# Replace the current shell process with the command passed as arguments.
-# This makes the application (mysqld) become PID 1 inside the container,
-# allowing Docker to properly track the main process and handle signals
-# such as SIGTERM for clean shutdown.
-exec "$@"
