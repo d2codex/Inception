@@ -1,0 +1,44 @@
+# Base image
+FROM debian:bookworm
+
+# Environment variables
+# noninteractive prevents pkg installation from asking questions
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y mariadb-server && \
+	# remove apt cache
+	rm -rf /var/lib/apt/lists/*
+	# after this inside the image we have:
+	# /usr/sbin/mysqld
+	# /etc/mysql/
+
+# Configuration
+# replace the default server configuration
+# 50-server.cnf config file gets installed when we install mariadb
+# we then override our config to this file
+COPY conf/my.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+
+# Application setup
+COPY tools/init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
+
+# Volumes (optional)
+
+# Ports (does not actually expose, documentaion only)
+EXPOSE 3306
+
+# Startup
+# ENTRYPOINT vs CMD
+# ENTRYPOINT defines what always runs when the container starts
+# CMD provids a default command
+ENTRYPOINT ["/usr/local/bin/init.sh"]
+CMD ["mysqld"]
+# the actual command becomes: /usr/local/bin/init.sh mysqld
+
+# Replace the current shell process with the command passed as arguments.
+# This makes the application (mysqld) become PID 1 inside the container,
+# allowing Docker to properly track the main process and handle signals
+# such as SIGTERM for clean shutdown.
+exec "$@"
