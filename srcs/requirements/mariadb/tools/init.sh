@@ -28,18 +28,19 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 	pid="$!"
 
 	# Wait until MariaDB is ready
-	until mariadb-admin --socket=/tmp/mysql.sock ping >/dev/null 2>&1
-	do
+	until mariadb-admin --socket=/tmp/mysql.sock ping >/dev/null 2>&1; do
 		sleep 1
 	done
 
 	# Configure database, user, and permissions
-	mariadb --socket=/tmp/mysql.sock << EOSQL
+	mariadb --socket=/tmp/mysql.sock <<EOSQL
 		ALTER USER 'root'@'localhost'
 		IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 
+		echo "Creating database ${MYSQL_DATABASE}..."
 		CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
 
+		echo "Creating user ${MYSQL_USER}..."
 		CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%'
 		IDENTIFIED BY '${MYSQL_PASSWORD}';
 
