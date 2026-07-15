@@ -120,6 +120,17 @@ build-wordpress:
 build-mariadb:
 	$(COMPOSE) -f $(COMPOSE_FILE) build mariadb
 
+## Start NGINX service only
+up-nginx:
+	$(COMPOSE) -f $(COMPOSE_FILE) up nginx
+
+## Start WordPress service only
+up-wordpress:
+	$(COMPOSE) -f $(COMPOSE_FILE) up wordpress
+## Start MariaDB service only
+up-mariadb:
+	$(COMPOSE) -f $(COMPOSE_FILE) up mariadb
+
 # ---------------------------------------------------------------------------- #
 # logs                                                                         #
 # ---------------------------------------------------------------------------- #
@@ -212,4 +223,4 @@ help:
 
 .PHONY: create-dirs create-secrets all build up down restart build-ngix build-wordpress \
 	build-mariadb logs logs-nginx logs-wordpress logs-mariadb shell-nginx shell-wordpress \
-	shell-maraidb ps clean fclean re help
+	shell-maraidb ps clean fclean re help up-mariadb up-nginx up-wordpress
