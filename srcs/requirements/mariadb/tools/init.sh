@@ -54,14 +54,18 @@ EOSQL
 	mariadb-admin \
 		--socket=/tmp/mysql.sock \
 		-u root \
-		-p"${MYSQL_ROOT_PASSWORD" shutdown
+		-p"${MYSQL_ROOT_PASSWORDi}" shutdown
 	wait "$pid"
 fi
 
 echo "Starting MariaDB..."
 
+# Create MariaDB runtime directory for Unix socket
+mkdir -p /run/mysqld
+chown mysql:mysql /run/mysqld
+
 # Replace the current shell process with the command passed as arguments.
 # This makes the application (mysqld) become PID 1 inside the container,
 # allowing Docker to properly track the main process and handle signals
 # such as SIGTERM for clean shutdown.
-exec "$@"
+exec "$@" --user=mysql
