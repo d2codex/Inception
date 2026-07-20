@@ -25,7 +25,9 @@ done
 echo "MariaDB is ready"
 
 # Check if WordPress is already installed
-if ! wp core is-installed --allow-root; then
+if ! wp core is-installed \
+	--path="$WP_PATH" \
+	--allow-root; then
 	echo "Installing WordPress..."
 
 	# download wp
@@ -53,7 +55,8 @@ if ! wp core is-installed --allow-root; then
 		--allow-root
 
 	# create users
-	wp users create \
+	wp user create \
+		--path="$WP_PATH" \
 		"$WP_USER" \
 		"$WP_USER_EMAIL" \
 		--user_pass="$WP_USER_PASSWORD" \
