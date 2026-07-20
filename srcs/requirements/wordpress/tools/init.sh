@@ -41,7 +41,7 @@ if ! wp core is-installed \
 		--dbname="$MYSQL_DATABASE" \
 		--dbuser="$MYSQL_USER" \
 		--dbpass="$MYSQL_PASSWORD" \
-		--dbhost="$MYSQL_HOST" \
+		--dbhost="mariadb" \
 		--allow-root
 
 	# install wp
