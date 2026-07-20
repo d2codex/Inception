@@ -59,15 +59,18 @@ if ! wp core is-installed \
 		--path="$WP_PATH" \
 		--allow-root >/dev/null 2>&1; then
 
-	echo "Creating WordPress user ${WP_USER}..."
+		echo "Creating WordPress user ${WP_USER}..."
 
-	wp user create \
-		"$WP_USER" \
-		"$WP_USER_EMAIL" \
-		--path="$WP_PATH" \
-		--user_pass="$WP_USER_PASSWORD" \
-		--role=subscriber \
-		--allow-root
+		wp user create \
+			"$WP_USER" \
+			"$WP_USER_EMAIL" \
+			--path="$WP_PATH" \
+			--user_pass="$WP_USER_PASSWORD" \
+			--role=subscriber \
+			--allow-root
+	else
+		echo "WordPress user ${WP_USER} already exists."
+	fi
 
 else
 	echo "Wordpress already installed."
