@@ -20,4 +20,4 @@ RUN chmod +x /usr/local/bin/init.sh
 EXPOSE 443
 
 # Startup
-CMD["/usr/local/bin/init.sh"]
+ENTRYPOINT ["/usr/local/bin/init.sh"]
