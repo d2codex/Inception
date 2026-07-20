@@ -34,6 +34,8 @@ if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
 	pid="$!"
 
 	# Wait until MariaDB is ready
+	# # Redirect stdout and stderr to /dev/null.
+	# # 2>&1 sends error output (fd 2) to the same place as normal output (fd 1).
 	until mariadb-admin --socket=/tmp/mysql.sock ping >/dev/null 2>&1; do
 		sleep 1
 	done
