@@ -34,6 +34,7 @@ RUN apt-get update && \
 	rm -rf /var/lib/apt/lists/*
 
 # Configuration
+COPY conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
 
 # Application setup
 COPY tools/init.sh /usr/local/bin/init.sh
