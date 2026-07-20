@@ -27,7 +27,7 @@ echo "MariaDB is ready"
 # Check if WordPress is already installed
 if ! wp core is-installed \
 	--path="$WP_PATH" \
-	--allow-root; then
+	--allow-root >/dev/null 2>&1; then
 	echo "Installing WordPress..."
 
 	# download wp
