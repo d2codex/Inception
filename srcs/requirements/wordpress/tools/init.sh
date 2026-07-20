@@ -54,11 +54,17 @@ if ! wp core is-installed \
 		--admin_email="$WP_ADMIN_EMAIL" \
 		--allow-root
 
-	# create users
-	wp user create \
+	# Create regular user if it does not already exist
+	if ! wp user get "$WP_USER" \
 		--path="$WP_PATH" \
+		--allow-root >/dev/null 2>&1; then
+
+	echo "Creating WordPress user ${WP_USER}..."
+
+	wp user create \
 		"$WP_USER" \
 		"$WP_USER_EMAIL" \
+		--path="$WP_PATH" \
 		--user_pass="$WP_USER_PASSWORD" \
 		--role=subscriber \
 		--allow-root
