@@ -51,6 +51,8 @@ services:
     # image locally instead of pulling nginx from Docker Hub.
       context: ./requirements/nginx
     image: nginx
+    env_file:
+      - .env
     depends_on:
       - wordpress
     volumes:
