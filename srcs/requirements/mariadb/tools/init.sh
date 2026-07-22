@@ -11,8 +11,7 @@ chown mysql:mysql /run/mysqld
 MYSQL_PASSWORD=$(cat /run/secrets/db_password)
 MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
-echo "MYSQL_DATABASE=${MYSQL_DATABASE}"
-echo "MYSQL_USER=${MYSQL_USER}"
+echo "Database configuration loaded."
 
 # Check if MariaDB has already been initialized.
 
@@ -50,7 +49,8 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
 	# Create database, user and permissions.
 	mariadb \
 		--socket=/tmp/mysql.sock \
-		-u root <<EOSQL
+		-u root \
+		--skip-password <<EOSQL
 
 	ALTER USER 'root'@'localhost'
 	IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
