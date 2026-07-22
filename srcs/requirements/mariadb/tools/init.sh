@@ -7,15 +7,6 @@ set -e
 mkdir -p /run/mysqld
 chown mysql:mysql /run/mysqld
 
-# Initialize MariaDB system tables on first startup.
-if [ ! -d "/var/lib/mysql/mysql" ]; then
-	echo "Initializing MariaDB..."
-
-	mariadb-install-db \
-		--user=mysql \
-		--datadir=/var/lib/mysql
-fi
-
 # Read passwords from Docker secrets.
 MYSQL_PASSWORD=$(cat /run/secrets/db_password)
 MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
@@ -23,43 +14,43 @@ MYSQL_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 echo "MYSQL_DATABASE=${MYSQL_DATABASE}"
 echo "MYSQL_USER=${MYSQL_USER}"
 
-# Start temporary MariaDB server for initial database setup.
-# This server only uses a local Unix socket.
-# Networking is disabled because WordPress is not connected yet.
-echo "Starting temporary MariaDB..."
+# Check if MariaDB has already been initialized.
 
-mysqld \
-	--user=mysql \
-	--skip-networking \
-	--socket=/tmp/mysql.sock &
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+	echo "Initializing MariaDB..."
 
-pid="$!"
+	mariadb-install-db \
+		--user=mysql \
+		--datadir=/var/lib/mysql
 
-# Wait until the temporary MariaDB server is ready.
-until mariadb-admin \
-	--socket=/tmp/mysql.sock \
-	ping >/dev/null 2>&1; do
+	# Start temporary MariaDB server for initial database setup.
+	# This server only uses a local Unix socket.
+	# Networking is disabled because WordPress is not connected yet.
+	echo "Starting temporary MariaDB..."
 
-	sleep 1
+	mysqld \
+		--user=mysql \
+		--skip-networking \
+		--socket=/tmp/mysql.sock &
 
-done
+	pid="$!"
 
-echo "MariaDB temporary server is ready"
+	# Wait until the temporary MariaDB server is ready.
+	until mariadb-admin \
+		--socket=/tmp/mysql.sock \
+		ping >/dev/null 2>&1; do
 
-# Check whether the application database already exists.
-DB_EXISTS=$(mariadb \
-	--socket=/tmp/mysql.sock \
-	-N \
-	-e "SHOW DATABASES LIKE '${MYSQL_DATABASE}';")
+		sleep 1
 
-if [ -z "$DB_EXISTS" ]; then
+	done
 
-	echo "Creating database ${MYSQL_DATABASE}..."
-	echo "Creating user ${MYSQL_USER}..."
+	echo "MariaDB temporary server is ready"
+	echo "Configuring database and users..."
 
 	# Create database, user and permissions.
 	mariadb \
-		--socket=/tmp/mysql.sock <<EOSQL
+		--socket=/tmp/mysql.sock \
+		-u root <<EOSQL
 
 	ALTER USER 'root'@'localhost'
 	IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
@@ -77,21 +68,20 @@ if [ -z "$DB_EXISTS" ]; then
 
 EOSQL
 
-else
+	# Stop temporary MariaDB server.
+	echo "Stopping temporary MariaDB..."
 
-	echo "Database ${MYSQL_DATABASE} already exists."
+	mariadb-admin \
+		--socket=/tmp/mysql.sock \
+		-u root \
+		-p"${MYSQL_ROOT_PASSWORD}" shutdown
+
+	wait "$pid"
+	echo "MariaDB initialization complete."
+else
+	echo "Existing MariaDB installation detected."
 
 fi
-
-# Stop temporary MariaDB server.
-echo "Stopping temporary MariaDB..."
-
-mariadb-admin \
-	--socket=/tmp/mysql.sock \
-	-u root \
-	-p"${MYSQL_ROOT_PASSWORD}" shutdown
-
-wait "$pid"
 
 echo "Starting MariaDB..."
 
