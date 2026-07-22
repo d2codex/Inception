@@ -64,38 +64,48 @@ Each secret is stored in a separate file to avoid exposing credentials in enviro
 
 ---
 
-## Building and Launching
+## Building and Running
 
-Build and start the infrastructure:
+The project is managed through the provided `Makefile`.
 
-```bash
-make
-```
-
-This command:
-
-1. Creates required directories.
-2. Generates secrets.
-3. Builds Docker images.
-4. Starts the containers using Docker Compose.
-
-To rebuild images:
+To view all available commands:
 
 ```bash
-make build
+make help
 ```
 
-To start existing containers:
+### Project Lifecycle
 
-```bash
-make up
-```
+| Command | Description |
+|---------|-------------|
+| `make` | Create required directories and secrets, build the images, and start the infrastructure. |
+| `make build` | Build all Docker images. |
+| `make up` | Start all services (building images if necessary). |
+| `make down` | Stop and remove containers and networks. |
+| `make restart` | Restart all running containers. |
+| `make re` | Rebuild and restart the project. |
+| `make clean` | Stop and remove containers and networks. |
+| `make fclean` | Remove containers, networks, volumes, generated secrets, and persistent data. |
 
-To stop the infrastructure:
+> During the initial setup, the Makefile automatically creates the required host directories for Docker volumes and generates Docker secrets if they do not already exist.
 
-```bash
-make down
-```
+### Monitoring
+
+| Command | Description |
+|---------|-------------|
+| `make ps` | Display the status of all containers. |
+| `make logs` | Follow logs from all services. |
+| `make logs-nginx` | Follow NGINX logs. |
+| `make logs-wordpress` | Follow WordPress logs. |
+| `make logs-mariadb` | Follow MariaDB logs. |
+
+### Access Containers
+
+| Command | Description |
+|---------|-------------|
+| `make shell-nginx` | Open a shell inside the NGINX container. |
+| `make shell-wordpress` | Open a shell inside the WordPress container. |
+| `make shell-mariadb` | Open a shell inside the MariaDB container. |
 
 ---
 
@@ -159,6 +169,53 @@ docker volume inspect <volume_name>
 ```
 
 ---
+## Inspecting the MariaDB Database
+
+### Access the MariaDB container
+
+```bash
+docker exec -it srcs-mariadb-1 sh
+```
+
+### Connect to MariaDB
+
+```bash
+mariadb -u root -p
+```
+
+When prompted, enter the password stored in:
+
+```text
+secrets/db_root_password.txt
+```
+
+### Inspect the WordPress database
+
+List all databases:
+
+```sql
+SHOW DATABASES;
+```
+
+Select the WordPress database:
+
+```sql
+USE wordpress;
+```
+
+List all tables:
+
+```sql
+SHOW TABLES;
+```
+
+Display the WordPress users:
+
+```sql
+SELECT ID, user_login, user_email FROM wp_users;
+```
+
+These commands verify that the database was successfully created, the WordPress schema has been initialized, and the configured users exist.
 
 ## Network
 
@@ -170,25 +227,3 @@ The network allows:
 - WordPress to communicate with MariaDB.
 
 Containers are isolated from external access except through NGINX on port 443.
-
----
-
-## Cleanup
-
-Remove containers:
-
-```bash
-make clean
-```
-
-Remove all Docker resources created by the project:
-
-```bash
-make fclean
-```
-
-Rebuild everything from scratch:
-
-```bash
-make re
-```
